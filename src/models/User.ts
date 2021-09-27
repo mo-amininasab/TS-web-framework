@@ -1,12 +1,16 @@
-interface UserProps {
-  name: string;
-  age: number;
-}
+import axios, { AxiosResponse } from 'axios';
 
-interface SettingUserProps {
+interface UserProps {
+  id?: number;
   name?: string;
   age?: number;
 }
+
+// interface SettingUserProps {
+//   id?: number;
+//   name?: string;
+//   age?: number;
+// }
 
 type Callback = () => void;
 
@@ -15,11 +19,11 @@ export class User {
 
   constructor(private data: UserProps) {}
 
-  get(propName: 'name' | 'age'): number | string {
-    return this.data[propName];
+  get(propName: 'name' | 'age' | 'id'): number | string {
+    return this.data[propName]!;
   }
 
-  set(update: SettingUserProps): void {
+  set(update: UserProps): void {
     Object.assign(this.data, update);
   }
 
@@ -39,5 +43,22 @@ export class User {
     handlers.forEach((callback) => {
       callback();
     });
+  }
+
+  fetch(): void {
+    axios
+      .get(`http://localhost:3000/users/${this.get('id')}`)
+      .then((res: AxiosResponse): void => {
+        this.set(res.data);
+      });
+  }
+
+  save(): void {
+    const id = this.get('id');
+    if (this.get('id')) {
+      axios.put(`http://localhost:3000/users/${id}`, this.data);
+    } else {
+      axios.post(`http://localhost:3000/users`, this.data);
+    }
   }
 }
